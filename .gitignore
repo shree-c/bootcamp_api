@@ -1,3 +1,4 @@
 node_modules
 *.test.js
-config/*
+config/config.env
+_data
