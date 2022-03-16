@@ -4,7 +4,8 @@ const Bootcamp = require('../models/Bootcamps')
 const ErrorResponse = require('../utils/customError');
 //importing async handler
 //takes a function resolves it and calls next(error) for error handling
-const async_handler = require('../utils/asynchandler')
+//to get rid of try..catch blocks
+const async_handler = require('../utils/asynchandler');
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public
