@@ -6,6 +6,8 @@ const ErrorResponse = require('../utils/customError');
 //takes a function resolves it and calls next(error) for error handling
 //to get rid of try..catch blocks
 const async_handler = require('../utils/asynchandler');
+//bringing in node-geocoder to convert zipcode to latitude and longitudes
+const geocoder = require('../utils/geocoder')
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public
@@ -85,4 +87,26 @@ exports.deleteBootcamp = async_handler(async (req, res, next) => {
         id: req.params.id,
         data: bootcamp
     });
+})
+
+// @desc    find bootcamps within given readius(km) of cordinates
+// @route   GET /api/v1/bootcamps/radius/:zipcode/:distance(km)
+// @access  Public
+
+exports.getBootcampsByZipcodeAndRadius = async_handler(async (req, res, next) => {
+    const { zipcode, distance } = req.params;
+    console.log(zipcode, distance);
+    const loc = await geocoder.geocode(zipcode);
+    const bootcamps = await Bootcamp.find({
+        location: {
+            $geoWithin: {
+                //converting distance to radians: dividing it by radius of earth
+                $centerSphere: [[loc[0].longitude, loc[0].latitude], distance / 6378.1]
+            }
+        }
+    })
+    res.status(200).json({
+        success: true,
+        data: bootcamps
+    })
 })
