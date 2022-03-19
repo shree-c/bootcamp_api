@@ -13,7 +13,8 @@ const geocoder = require('../utils/geocoder')
 // @access  Public
 
 exports.getBootcamps = async_handler(async (req, res, next) => {
-    const bootcamps = await Bootcamp.find();
+    //now also passing req.query to db
+    const bootcamps = await Bootcamp.find(req.query);
     res.status(200).json({
         status: 'success',
         count: bootcamps.length,
