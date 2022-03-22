@@ -44,5 +44,5 @@ if (arg_str === '-d') {
         add_data();
     })
 } else {
-    console.log('unknown operation'.red.underline)
+    console.log('unknown operation: use -c to add and -d to delete'.red.underline)
 }

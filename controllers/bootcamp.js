@@ -8,23 +8,47 @@ const ErrorResponse = require('../utils/customError');
 const async_handler = require('../utils/asynchandler');
 //bringing in node-geocoder to convert zipcode to latitude and longitudes
 const geocoder = require('../utils/geocoder')
+
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public
-
 exports.getBootcamps = async_handler(async (req, res, next) => {
     //now also passing req.query to db
-    const bootcamps = await Bootcamp.find(req.query);
+    console.log(req.query);
+    const queryObj = { ...req.query }
+    //we want to delete select key in object because we need it for filtering but not querying
+    const deleteFields = ['select', 'sort'];
+    deleteFields.forEach(val => delete queryObj[val]);
+    //replacing operators such as lt with $lt etc
+    const queryStr = JSON.stringify(queryObj).replace(/\b(gt|eq|gte|lt|lte|in)\b/g, match => `$${match}`);
+    let query = Bootcamp.find(JSON.parse(queryStr));
+    //if select field exist
+    if (req.query.select) {
+        //converting select key's comma seperated values to space seperated string
+        const selectstr = req.query.select.split(',').join(' ');
+        query = query.select(selectstr)
+    }
+    //if sorting is given
+    if (req.query.sort) {
+        //converting select key's comma seperated values to space seperated string
+        const sort = req.query.sort.split(',').join(' ');
+        query = query.sort(sort);
+    } else {
+        //descending created at
+        query = query.sort('-createdAt')
+    }
+    //making query to db
+    const bootcamps = await query;
     res.status(200).json({
         status: 'success',
         count: bootcamps.length,
         data: bootcamps
     });
 })
+
 // @desc    create bootcamps
 // @route   POST /api/v1/bootcamps
 // @access  Private
-
 exports.createBootcamp = async_handler(async (req, res, next) => {
     //the data is added according to model and validation checks are done
     const bootcamp = await Bootcamp.create(req.body);
@@ -37,7 +61,6 @@ exports.createBootcamp = async_handler(async (req, res, next) => {
 // @desc    Get single bootcamp
 // @route   GET /api/v1/bootcamps/:id
 // @access  Public
-
 exports.getBootcamp = async_handler(async (req, res, next) => {
     const bootcamp = await Bootcamp.findById(req.params.id);
     //if the id is not found but in valid format
@@ -52,10 +75,10 @@ exports.getBootcamp = async_handler(async (req, res, next) => {
         data: bootcamp
     });
 })
+
 // @desc    Update single bootcamps
 // @route   PUT /api/v1/bootcamps/:id
 // @access  Private
-
 exports.updateBootcamp = async_handler(async (req, res, next) => {
     const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
         runValidators: true,
@@ -72,10 +95,10 @@ exports.updateBootcamp = async_handler(async (req, res, next) => {
         data: bootcamp
     });
 })
+
 // @desc    Delete single bootcamps
 // @route   DELETE /api/v1/bootcamps/:id
 // @access  Private
-
 exports.deleteBootcamp = async_handler(async (req, res, next) => {
     const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
     //if the id is not found but in valid format
@@ -93,7 +116,6 @@ exports.deleteBootcamp = async_handler(async (req, res, next) => {
 // @desc    find bootcamps within given readius(km) of cordinates
 // @route   GET /api/v1/bootcamps/radius/:zipcode/:distance(km)
 // @access  Public
-
 exports.getBootcampsByZipcodeAndRadius = async_handler(async (req, res, next) => {
     const { zipcode, distance } = req.params;
     console.log(zipcode, distance);
