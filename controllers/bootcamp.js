@@ -1,5 +1,5 @@
 //importing mongoose schema
-const Bootcamp = require('../models/Bootcamps')
+const Bootcamp = require('../models/Bootcamps');
 //importing custom error object
 const ErrorResponse = require('../utils/customError');
 //importing async handler
@@ -7,7 +7,7 @@ const ErrorResponse = require('../utils/customError');
 //to get rid of try..catch blocks
 const async_handler = require('../utils/asynchandler');
 //bringing in node-geocoder to convert zipcode to latitude and longitudes
-const geocoder = require('../utils/geocoder')
+const geocoder = require('../utils/geocoder');
 
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
@@ -15,18 +15,19 @@ const geocoder = require('../utils/geocoder')
 exports.getBootcamps = async_handler(async (req, res, next) => {
     //now also passing req.query to db
     console.log(req.query);
-    const queryObj = { ...req.query }
-    //we want to delete select key in object because we need it for filtering but not querying
+    const queryObj = { ...req.query };
+    //we want to delete select, and sort key in object because we need it for filtering but not querying
     const deleteFields = ['select', 'sort'];
     deleteFields.forEach(val => delete queryObj[val]);
     //replacing operators such as lt with $lt etc
     const queryStr = JSON.stringify(queryObj).replace(/\b(gt|eq|gte|lt|lte|in)\b/g, match => `$${match}`);
+    //doing query
     let query = Bootcamp.find(JSON.parse(queryStr));
     //if select field exist
     if (req.query.select) {
         //converting select key's comma seperated values to space seperated string
         const selectstr = req.query.select.split(',').join(' ');
-        query = query.select(selectstr)
+        query = query.select(selectstr);
     }
     //if sorting is given
     if (req.query.sort) {
@@ -35,7 +36,7 @@ exports.getBootcamps = async_handler(async (req, res, next) => {
         query = query.sort(sort);
     } else {
         //descending created at
-        query = query.sort('-createdAt')
+        query = query.sort('-createdAt');
     }
     //making query to db
     const bootcamps = await query;
@@ -44,7 +45,7 @@ exports.getBootcamps = async_handler(async (req, res, next) => {
         count: bootcamps.length,
         data: bootcamps
     });
-})
+});
 
 // @desc    create bootcamps
 // @route   POST /api/v1/bootcamps
@@ -56,7 +57,7 @@ exports.createBootcamp = async_handler(async (req, res, next) => {
         status: 'success',
         data: bootcamp
     });
-})
+});
 
 // @desc    Get single bootcamp
 // @route   GET /api/v1/bootcamps/:id
@@ -74,7 +75,7 @@ exports.getBootcamp = async_handler(async (req, res, next) => {
         id: req.params.id,
         data: bootcamp
     });
-})
+});
 
 // @desc    Update single bootcamps
 // @route   PUT /api/v1/bootcamps/:id
@@ -94,7 +95,7 @@ exports.updateBootcamp = async_handler(async (req, res, next) => {
         id: req.params.id,
         data: bootcamp
     });
-})
+});
 
 // @desc    Delete single bootcamps
 // @route   DELETE /api/v1/bootcamps/:id
@@ -111,7 +112,7 @@ exports.deleteBootcamp = async_handler(async (req, res, next) => {
         id: req.params.id,
         data: bootcamp
     });
-})
+});
 
 // @desc    find bootcamps within given readius(km) of cordinates
 // @route   GET /api/v1/bootcamps/radius/:zipcode/:distance(km)
@@ -127,9 +128,9 @@ exports.getBootcampsByZipcodeAndRadius = async_handler(async (req, res, next) =>
                 $centerSphere: [[loc[0].longitude, loc[0].latitude], distance / 6378.1]
             }
         }
-    })
+    });
     res.status(200).json({
         success: true,
         data: bootcamps
-    })
-})
+    });
+});

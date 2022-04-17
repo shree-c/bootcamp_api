@@ -7,7 +7,7 @@ const errorHandler = (err, req, res, next) => {
     }
     //duplicate field
     if (err.code === 11000) {
-        err.message = `duplicate field: ${JSON.stringify(err.keyValue)}`
+        err.message = `duplicate field: ${JSON.stringify(err.keyValue)}`;
         err.statusCode = 400;
     }
     //calidation error
@@ -19,7 +19,7 @@ const errorHandler = (err, req, res, next) => {
     res.status(err.statusCode || 500).json({
         success: false,
         error: `${err.message}` || 'server error'
-    })
-}
+    });
+};
 
 module.exports = errorHandler;
