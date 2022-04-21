@@ -8,6 +8,7 @@ const ErrorResponse = require('../utils/customError');
 const async_handler = require('../utils/asynchandler');
 //bringing in node-geocoder to convert zipcode to latitude and longitudes
 const geocoder = require('../utils/geocoder');
+const { strikethrough } = require('colors');
 
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
@@ -15,14 +16,18 @@ const geocoder = require('../utils/geocoder');
 exports.getBootcamps = async_handler(async (req, res, next) => {
     //now also passing req.query to db
     console.log(req.query);
+    //copying query object because it now contains some fields that cannot be used for querying
     const queryObj = { ...req.query };
     //we want to delete select, and sort key in object because we need it for filtering but not querying
-    const deleteFields = ['select', 'sort'];
+    const deleteFields = ['select', 'sort', 'page', 'limit'];
     deleteFields.forEach(val => delete queryObj[val]);
+
     //replacing operators such as lt with $lt etc
     const queryStr = JSON.stringify(queryObj).replace(/\b(gt|eq|gte|lt|lte|in)\b/g, match => `$${match}`);
-    //doing query
+
+    //building query
     let query = Bootcamp.find(JSON.parse(queryStr));
+    //we are modifying the query as we go down
     //if select field exist
     if (req.query.select) {
         //converting select key's comma seperated values to space seperated string
@@ -30,20 +35,46 @@ exports.getBootcamps = async_handler(async (req, res, next) => {
         query = query.select(selectstr);
     }
     //if sorting is given
+    //-key would sort in opposite order
     if (req.query.sort) {
         //converting select key's comma seperated values to space seperated string
         const sort = req.query.sort.split(',').join(' ');
         query = query.sort(sort);
     } else {
-        //descending created at
+        //default: descending created at
         query = query.sort('-createdAt');
     }
+    //pagination
+    const page = parseInt(req.query.page, 10) || 1; //converting to number
+    const limit = parseInt(req.query.limit, 10) || 25;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await Bootcamp.countDocuments();
+    query = query.skip(startIndex).limit(limit);
+
     //making query to db
     const bootcamps = await query;
+
+    //adding pagination info to the sending document
+    const pagination = {};
+    //startIndex and endIndex help to check whether we are within range
+    if (endIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit,
+        };
+    }
+    if (startIndex > 0) {
+        pagination.pre = {
+            page: page - 1,
+            limit
+        };
+    }
     res.status(200).json({
         status: 'success',
         count: bootcamps.length,
-        data: bootcamps
+        data: bootcamps,
+        pagination
     });
 });
 
