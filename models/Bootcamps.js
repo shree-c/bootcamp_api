@@ -136,5 +136,31 @@ BootcampSchema.pre('save', async function (next) {
     this.address = undefined;
     next();
 });
+/*
+!!!
+* we want to reverse populate bootcamp objects with courses they offer
+* we have made courses refer bootcamps which offer those courses
+* we use virtuals which give ability to set virturl properties on a query result which are not actually stored on the db
+* we also can set virtuals but we not use them here
+* there is also need to do a certain setting to include virtuals when we call methods toJSON() and toObject()
+*/
+BootcampSchema.virtual('courses', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false,
+});
+
+/*
+!!!
+* if a bootcamp is deleted, all of the courses it offers has to be deleted
+*/
+BootcampSchema.pre('remove', async function (next) {
+    console.log(`courses removed : ${this._id}`);
+    await this.model('Course').deleteMany({
+        bootcamp: this._id
+    });
+    next();
+});
 //the name is used for collection name in db
 module.exports = mongoose.model('Bootcamp', BootcampSchema);

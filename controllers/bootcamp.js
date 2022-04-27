@@ -8,7 +8,6 @@ const ErrorResponse = require('../utils/customError');
 const async_handler = require('../utils/asynchandler');
 //bringing in node-geocoder to convert zipcode to latitude and longitudes
 const geocoder = require('../utils/geocoder');
-const { strikethrough } = require('colors');
 
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
@@ -53,7 +52,11 @@ exports.getBootcamps = async_handler(async (req, res, next) => {
     query = query.skip(startIndex).limit(limit);
 
     //making query to db
-    const bootcamps = await query;
+    //populating with virtual course field
+    const bootcamps = await query.populate({
+        path: 'courses',
+        select: 'title'
+    });
 
     //adding pagination info to the sending document
     const pagination = {};
@@ -132,12 +135,13 @@ exports.updateBootcamp = async_handler(async (req, res, next) => {
 // @route   DELETE /api/v1/bootcamps/:id
 // @access  Private
 exports.deleteBootcamp = async_handler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+    const bootcamp = await Bootcamp.findById(req.params.id);
     //if the id is not found but in valid format
     //return because you can set properties more than once even though thery are in if statements etc.
     if (!bootcamp) {
         return next(new ErrorResponse(`bootcamp not found with id: ${req.params.id}`, 404));
     }
+    bootcamp.remove();
     res.status(200).json({
         status: 'success',
         id: req.params.id,

@@ -1,5 +1,6 @@
 const express = require('express');
-const router = require('./routes/router');
+const bootcamps_router = require('./routes/bootcamps_router');
+const courses_router = require('./routes/courses_router');
 //requiring custom error handler
 const errorHandler = require('./middlewares/errorHandler');
 const app = express();
@@ -20,7 +21,8 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 //mounting router to app
-app.use('/api/v1/bootcamps/', router);
+app.use('/api/v1/bootcamps/', bootcamps_router);
+app.use('/api/v1/courses/', courses_router);
 //error handler middleware should be used after router
 app.use(errorHandler);
 const PORT = process.env.PORT || 5000;

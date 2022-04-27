@@ -3,6 +3,7 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const Bootcamp = require('./models/Bootcamps');
+const Course = require('./models/Courses');
 require('colors');
 require('dotenv').config({
     path: './config/config.env'
@@ -13,7 +14,7 @@ const connectDB = async () => {
     console.log(`connected to db ${conn.connection.host}`.green);
 };
 
-const delete_data = async () => {
+const delete_bootcamps = async () => {
     try {
         await Bootcamp.deleteMany();
         console.log(`deleted all bootcamps`.red);
@@ -34,15 +35,46 @@ const add_data = async () => {
         process.exit(1);
     }
 };
+
+const add_courses = async () => {
+    try {
+        await Course.create(JSON.parse(fs.readFileSync(`${__dirname}/_data/courses.json`)));
+        console.log(`added all courses`.green.inverse);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
+const delete_courses = async () => {
+    try {
+        await Course.deleteMany();
+        console.log(`deleted all courses`.red);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
 const arg_str = process.argv.slice(2)[0];
-if (arg_str === '-d') {
+if (arg_str === '-db') {
     connectDB().then(() => {
-        delete_data();
+        delete_bootcamps();
     });
-} else if (arg_str === '-c') {
+} else if (arg_str === '-cb') {
     connectDB().then(() => {
         add_data();
     });
+} else if (arg_str === '-cc') {
+    connectDB().then(() => {
+        add_courses();
+    });
+} else if (arg_str === '-dc') {
+    connectDB().then(() => {
+        delete_courses();
+    });
 } else {
-    console.log('unknown operation: use -c to add and -d to delete'.red.underline);
-}
+    console.log('unknown operation: use -c to add bootcamps, -p to add courses, and -d to delete'.red.underline);
+};
