@@ -97,7 +97,10 @@ exports.createBootcamp = async_handler(async (req, res, next) => {
 // @route   GET /api/v1/bootcamps/:id
 // @access  Public
 exports.getBootcamp = async_handler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findById(req.params.id);
+    const bootcamp = await Bootcamp.findById(req.params.id).populate({
+        path: 'courses',
+        select: 'title'
+    });
     //if the id is not found but in valid format
     //return because you can set properties more than once even though thery are in if statements etc.
     if (!bootcamp) {
