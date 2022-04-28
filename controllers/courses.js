@@ -97,12 +97,13 @@ exports.updateCourse = async_handler(async (req, res, next) => {
 // @route   PUT /api/v1/courses/:id
 // @access  private
 exports.deleteCourse = async_handler(async (req, res, next) => {
-    const course = await Course.findByIdAndRemove(req.params.id);
+    const course = await Course.findById(req.params.id);
     if (!course) {
         return next(
             new ErrorResponse(`no course exists with ${req.params.id}`, 404)
         );
     }
+    await course.remove();
     res.status(200).json({
         success: true,
         data: course

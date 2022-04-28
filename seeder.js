@@ -25,7 +25,7 @@ const delete_bootcamps = async () => {
     }
 };
 
-const add_data = async () => {
+const add_bootcamps = async () => {
     try {
         await Bootcamp.create(JSON.parse(fs.readFileSync(`${__dirname}/_data/bootcamps.json`)));
         console.log(`added all bootcamps`.green.inverse);
@@ -65,7 +65,7 @@ if (arg_str === '-db') {
     });
 } else if (arg_str === '-cb') {
     connectDB().then(() => {
-        add_data();
+        add_bootcamps();
     });
 } else if (arg_str === '-cc') {
     connectDB().then(() => {
@@ -76,5 +76,5 @@ if (arg_str === '-db') {
         delete_courses();
     });
 } else {
-    console.log('unknown operation: use -c to add bootcamps, -p to add courses, and -d to delete'.red.underline);
+    console.log('unknown operation'.red.underline);
 };
