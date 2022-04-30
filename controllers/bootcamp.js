@@ -1,3 +1,4 @@
+const path = require('path');
 //importing mongoose schema
 const Bootcamp = require('../models/Bootcamps');
 //importing custom error object
@@ -13,72 +14,8 @@ const geocoder = require('../utils/geocoder');
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = async_handler(async (req, res, next) => {
-    //now also passing req.query to db
-    console.log(req.query);
-    //copying query object because it now contains some fields that cannot be used for querying
-    const queryObj = { ...req.query };
-    //we want to delete select, and sort key in object because we need it for filtering but not querying
-    const deleteFields = ['select', 'sort', 'page', 'limit'];
-    deleteFields.forEach(val => delete queryObj[val]);
-
-    //replacing operators such as lt with $lt etc
-    const queryStr = JSON.stringify(queryObj).replace(/\b(gt|eq|gte|lt|lte|in)\b/g, match => `$${match}`);
-
-    //building query
-    let query = Bootcamp.find(JSON.parse(queryStr));
-    //we are modifying the query as we go down
-    //if select field exist
-    if (req.query.select) {
-        //converting select key's comma seperated values to space seperated string
-        const selectstr = req.query.select.split(',').join(' ');
-        query = query.select(selectstr);
-    }
-    //if sorting is given
-    //-key would sort in opposite order
-    if (req.query.sort) {
-        //converting select key's comma seperated values to space seperated string
-        const sort = req.query.sort.split(',').join(' ');
-        query = query.sort(sort);
-    } else {
-        //default: descending created at
-        query = query.sort('-createdAt');
-    }
-    //pagination
-    const page = parseInt(req.query.page, 10) || 1; //converting to number
-    const limit = parseInt(req.query.limit, 10) || 25;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const total = await Bootcamp.countDocuments();
-    query = query.skip(startIndex).limit(limit);
-
-    //making query to db
-    //populating with virtual course field
-    const bootcamps = await query.populate({
-        path: 'courses',
-        select: 'title'
-    });
-
-    //adding pagination info to the sending document
-    const pagination = {};
-    //startIndex and endIndex help to check whether we are within range
-    if (endIndex < total) {
-        pagination.next = {
-            page: page + 1,
-            limit,
-        };
-    }
-    if (startIndex > 0) {
-        pagination.pre = {
-            page: page - 1,
-            limit
-        };
-    }
-    res.status(200).json({
-        status: 'success',
-        count: bootcamps.length,
-        data: bootcamps,
-        pagination
-    });
+    //using advanced results middleware
+    res.status(200).json(res.advancedResults);
 });
 
 // @desc    create bootcamps
@@ -171,4 +108,46 @@ exports.getBootcampsByZipcodeAndRadius = async_handler(async (req, res, next) =>
         success: true,
         data: bootcamps
     });
+});
+
+// @desc    upload file to server
+// @route   PUT /api/v1/bootcamps/:id/photo
+// @access  Private
+exports.bootcampPhotoUpload = async_handler(async (req, res, next) => {
+    const bootcamp = await Bootcamp.findById(req.params.id);
+    //if the id is not found but in valid format
+    //return because you can set properties more than once even though thery are in if statements etc.
+    if (!bootcamp) {
+        return next(new ErrorResponse(`bootcamp not found with id: ${req.params.id}`, 404));
+    }
+    if (!req.files) {
+        return next(new ErrorResponse(`please upload a file`, 400));
+    }
+    console.log(req.files);
+    const file = req.files.file;
+    //file validations
+    //file type
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse(`the file has to be an image`, 400));
+    }
+    //file size
+    if (file.size > process.env.FILE_MAX_SIZE) {
+        return next(new ErrorResponse(`the file is too large(< 1 MB)`, 400));
+    }
+    //changing the file name to an unique name
+    file.name = `photo_${bootcamp._id}${path.extname(file.name)}`;
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
+        if (err) {
+            console.log(err);
+            return next(new ErrorResponse(`server error happened, please try later`, 500));
+        }
+        await Bootcamp.findByIdAndUpdate(bootcamp._id, {
+            photo: file.name
+        });
+        res.status(200).json({
+            status: 'success',
+            data: file.name
+        });
+    });
+
 });

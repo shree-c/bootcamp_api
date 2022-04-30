@@ -10,26 +10,19 @@ const Bootcamps = require('../models/Bootcamps');
 // @access  Public
 
 exports.getAllCourses = async_handler(async (req, res, next) => {
-    //building query is different from executing query
-    //use await to execute the query
-    let query;
     if (req.params.bootcampId) {
-        query = Course.find({
+        const courses = await Course.find({
             bootcamp: req.params.bootcampId
         });
-    } else {
-        //populate the result with info of bootcamps the course is made for
-        query = Course.find().populate({
-            path: 'bootcamp',
-            select: 'name description'
+        res.status(200).json({
+            success: true,
+            count: courses.length,
+            data: courses
         });
+    } else {
+        //using advanced results middleware
+        res.status(200).json(res.advancedResults);
     }
-    const courses = await query;
-    res.status(200).json({
-        success: true,
-        count: courses.length,
-        data: courses
-    });
 }
 );
 

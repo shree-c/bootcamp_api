@@ -71,7 +71,6 @@ CourseSchema.statics.getAvgCost = async function (bootcampId) {
     await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
         averageCost: Math.floor(obj[0].averageCost),
     });
-    console.log(obj);
 };
 CourseSchema.post('save', async function () {
     await this.constructor.getAvgCost(this.bootcamp);
