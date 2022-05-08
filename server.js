@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const bootcamps_router = require('./routes/bootcamps_router');
 const courses_router = require('./routes/courses_router');
+const auth_router = require('./routes/auth');
 //birnging in db
 const { connect_db, connection } = require('./config/db');
 //express file upload for uploading files
@@ -30,7 +31,9 @@ app.use(expressfileupload());
 //mounting router to app
 app.use('/api/v1/bootcamps/', bootcamps_router);
 app.use('/api/v1/courses/', courses_router);
+app.use('/api/v1/auth/', auth_router);
 //error handler middleware should be used after router
+//this is universal error handler
 app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 (async function () {
