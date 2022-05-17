@@ -4,6 +4,7 @@ const router = require('express').Router({
 });
 const { getAllCourses, getCourse, addCourse, updateCourse, deleteCourse } = require('../controllers/courses');
 const advancedResults = require('../middlewares/advancedResults');
+const { protect, authorize } = require('../middlewares/auth');
 const Courses = require('../models/Courses');
 
 router.route('/')
@@ -11,11 +12,11 @@ router.route('/')
         path: 'bootcamp',
         select: 'name _id'
     }), getAllCourses)
-    .post(addCourse);
+    .post(protect, authorize('publisher', 'admin'), addCourse);
 
 router.route('/:id')
     .get(getCourse)
-    .put(updateCourse)
-    .delete(deleteCourse);
+    .put(protect, authorize('publisher', 'admin'), updateCourse)
+    .delete(protect, authorize('publisher', 'admin'), deleteCourse);
 
 module.exports = router;

@@ -13,13 +13,9 @@ exports.register = async_handler(async (req, res, next) => {
         password,
         role
     });
-    const token = user.getSignedJwtToken();
-    res.status(200).json({
-        success: true,
-        token
-    });
+    sendTokenResponse(user, res, 200);
 });
-// @desc    register a user
+// @desc    user login
 // @route   POST /api/v1/auth/register
 // @access  Public
 exports.login = async_handler(async function (req, res, next) {
@@ -37,9 +33,36 @@ exports.login = async_handler(async function (req, res, next) {
     if (!await user.compare(password)) {
         return next(new ErrorResponse('wrong email or password', 401));
     }
-    const token = user.getSignedJwtToken();
-    res.status(200).json({
-        success: true,
-        token
-    });
+    sendTokenResponse(user, res, 200);
 });
+
+// @desc    get user info
+// @route   GET /api/v1/auth/me
+// @access  Private
+exports.getMe = async_handler(async function (req, res, next) {
+    //in the tutorial brad has again queried the db with the id from req.user.id set by the protect function
+    //I thought it was unncessary since all the info is available req.user
+    res.status(200)
+        .json({
+            success: true,
+            data: req.user
+        });
+});
+
+//for sending token response
+function sendTokenResponse(user, res, statusCode) {
+    //create token
+    const token = user.getSignedJwtToken();
+    //cookie options
+    const options = {
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE_TIME * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    };
+    res
+        .status(statusCode)
+        .cookie('token', token, options)
+        .json({
+            success: true,
+            token
+        });
+}

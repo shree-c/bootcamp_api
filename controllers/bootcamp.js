@@ -22,6 +22,13 @@ exports.getBootcamps = async_handler(async (req, res, next) => {
 // @route   POST /api/v1/bootcamps
 // @access  Private
 exports.createBootcamp = async_handler(async (req, res, next) => {
+    //assigning user field from the protect route
+    req.body.user = req.user;
+    //making sure a publisher can publish only a single bootcamp
+    const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
+    if (publishedBootcamp && req.user.role === 'publisher') {
+        return next(new ErrorResponse('a publisher can publish only bootcamp', 403));
+    }
     //the data is added according to model and validation checks are done
     const bootcamp = await Bootcamp.create(req.body);
     res.status(200).json({
@@ -113,6 +120,7 @@ exports.getBootcampsByZipcodeAndRadius = async_handler(async (req, res, next) =>
 // @desc    upload file to server
 // @route   PUT /api/v1/bootcamps/:id/photo
 // @access  Private
+//remember the photo has to be sent with the key value 'file'
 exports.bootcampPhotoUpload = async_handler(async (req, res, next) => {
     const bootcamp = await Bootcamp.findById(req.params.id);
     //if the id is not found but in valid format

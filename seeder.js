@@ -4,6 +4,7 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const Bootcamp = require('./models/Bootcamps');
 const Course = require('./models/Courses');
+const Users = require('./models/Users');
 require('colors');
 require('dotenv').config({
     path: './config/config.env'
@@ -46,6 +47,28 @@ const add_courses = async () => {
         process.exit(1);
     }
 };
+const add_users = async () => {
+    try {
+        await Users.create(JSON.parse(fs.readFileSync(`${__dirname}/_data/users.json`)));
+        console.log(`added all users`.green.inverse);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
+const delete_users = async () => {
+    try {
+        await Users.deleteMany();
+        console.log(`deleted all users`.red);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
 
 const delete_courses = async () => {
     try {
@@ -58,23 +81,46 @@ const delete_courses = async () => {
     }
 };
 
-const arg_str = process.argv.slice(2)[0];
-if (arg_str === '-db') {
-    connectDB().then(() => {
-        delete_bootcamps();
-    });
-} else if (arg_str === '-cb') {
-    connectDB().then(() => {
-        add_bootcamps();
-    });
-} else if (arg_str === '-cc') {
-    connectDB().then(() => {
-        add_courses();
-    });
-} else if (arg_str === '-dc') {
-    connectDB().then(() => {
-        delete_courses();
-    });
-} else {
-    console.log('unknown operation'.red.underline);
-};
+const arg_str = process.argv.slice(2);
+if (!arg_str.length) {
+    console.log('no options provided');
+}
+console.log(arg_str);
+arg_str.forEach(async (val, ind) => {
+    console.log(`option ${ind + 1} : ${val}:`.yellow);
+    switch (val) {
+        case '-db':
+            await connectDB().then(() => {
+                delete_bootcamps();
+            });
+            break;
+        case '-cb':
+            connectDB().then(() => {
+                add_bootcamps();
+            });
+            break;
+        case '-cc':
+            await connectDB().then(() => {
+                add_courses();
+            });
+            break;
+        case '-dc':
+            await connectDB().then(() => {
+                delete_courses();
+            });
+            break;
+        case '-cu':
+            await connectDB().then(() => {
+                add_users();
+            });
+            break;
+        case '-du':
+            await connectDB().then(() => {
+                delete_users();
+            });
+            break;
+        default:
+            console.log('unknown operation'.red.underline);
+            break;
+    }
+});

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { getBootcamps, getBootcamp, createBootcamp, updateBootcamp, deleteBootcamp, getBootcampsByZipcodeAndRadius, bootcampPhotoUpload } = require('../controllers/bootcamp');
 const advancedResults = require('../middlewares/advancedResults');
+const { protect, authorize } = require('../middlewares/auth');
 const Bootcamps = require('../models/Bootcamps');
 //rerouting /:bootcamps/courses to course router
 const course_router = require('./courses_router');
@@ -12,15 +13,15 @@ router.route('/')
         path: 'courses',
         select: 'title'
     }), getBootcamps)
-    .post(createBootcamp);
+    .post(protect, authorize('publisher', 'admin'), createBootcamp);
 
 router.route('/:id')
     .get(getBootcamp)
-    .put(updateBootcamp)
-    .delete(deleteBootcamp);
+    .put(protect, authorize('publisher', 'admin'), updateBootcamp)
+    .delete(protect, authorize('publisher', 'admin'), deleteBootcamp);
 
 router.route('/:id/photo')
-    .put(bootcampPhotoUpload);
+    .put(protect, authorize('publisher', 'admin'), bootcampPhotoUpload);
 
 router.route('/radius/:zipcode/:distance').get(getBootcampsByZipcodeAndRadius);
 

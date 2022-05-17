@@ -16,6 +16,8 @@ require('colors');
 app.use(express.json());
 //logger middleware
 const morgan = require('morgan');
+//cookie parser middleware
+const cookieParser = require('cookie-parser');
 //setting env variables
 require('dotenv').config({
     path: './config/config.env'
@@ -24,10 +26,12 @@ require('dotenv').config({
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
-//exposig static files
+//exposing static files
 app.use(express.static(path.join(__dirname, 'public')));
 //file upload middleware
 app.use(expressfileupload());
+//cookie parser
+app.use(cookieParser());
 //mounting router to app
 app.use('/api/v1/bootcamps/', bootcamps_router);
 app.use('/api/v1/courses/', courses_router);
