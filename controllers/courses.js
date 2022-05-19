@@ -50,15 +50,23 @@ exports.getCourse = async_handler(async (req, res, next) => {
 // @desc    add a course
 // @route   POST /api/v1/bootcamps/:bootcampId/courses
 // @access  private
+//course is added with the help of bootcamp id the course belongs
+//the user logged in should be the owner of the bootcamp
+//course is linked to bootcamp and it's and the user who should be the owner of the bootcamp
 exports.addCourse = async_handler(async (req, res, next) => {
     req.body.bootcamp = req.params.bootcampId;
+    //adding user id from protect function
+    req.body.user = req.user.id;
     const bootcamp = await Bootcamps.find({ _id: req.params.bootcampId });
-    const course = await Course.create(req.body);
     if (!bootcamp) {
         return next(
             new ErrorResponse(`no bootcamp exists with ${req.params.bootcampId}`, 404)
         );
     }
+    if (req.user.id !== bootcamp.user.toString() && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`${req.user.id} is not the owner of this course`, 401));
+    }
+    const course = await Course.create(req.body);
     res.status(200).json({
         success: true,
         data: course
@@ -70,15 +78,20 @@ exports.addCourse = async_handler(async (req, res, next) => {
 // @route   PUT /api/v1/courses/:id
 // @access  private
 exports.updateCourse = async_handler(async (req, res, next) => {
-    const course = await Course.findByIdAndUpdate(req.params.id, req.body, {
-        runValidators: true,
-        new: true
-    });
+    const course = await Course.findById(req.params.id);
     if (!course) {
         return next(
             new ErrorResponse(`no course exists with ${req.params.id}`, 404)
         );
     }
+    console.log(course);
+    if (req.user.id !== course.user.toString() && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`${req.user.id} is not the owner of this course`, 401));
+    }
+    await Course.findByIdAndUpdate(req.params.id, req.body, {
+        runValidators: true,
+        new: true
+    });
     res.status(200).json({
         success: true,
         data: course
@@ -95,6 +108,9 @@ exports.deleteCourse = async_handler(async (req, res, next) => {
         return next(
             new ErrorResponse(`no course exists with ${req.params.id}`, 404)
         );
+    }
+    if (req.user.id !== course.user.toString() && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`${req.user.id} is not the owner of this course`, 401));
     }
     await course.remove();
     res.status(200).json({

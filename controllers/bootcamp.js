@@ -27,7 +27,7 @@ exports.createBootcamp = async_handler(async (req, res, next) => {
     //making sure a publisher can publish only a single bootcamp
     const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
     if (publishedBootcamp && req.user.role === 'publisher') {
-        return next(new ErrorResponse('a publisher can publish only bootcamp', 403));
+        return next(new ErrorResponse('a publisher can publish only one bootcamp', 403));
     }
     //the data is added according to model and validation checks are done
     const bootcamp = await Bootcamp.create(req.body);
@@ -62,15 +62,20 @@ exports.getBootcamp = async_handler(async (req, res, next) => {
 // @route   PUT /api/v1/bootcamps/:id
 // @access  Private
 exports.updateBootcamp = async_handler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-        runValidators: true,
-        new: true
-    });
+    let bootcamp = await Bootcamp.findById(req.params.id);
     //if the id is not found but in valid format
     //return because you can set properties more than once even though thery are in if statements etc.
     if (!bootcamp) {
         return next(new ErrorResponse(`bootcamp not found with id: ${req.params.id}`, 404));
     }
+    //make sure the user is bootcamp owner or an admin
+    if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`you are not authorized to do this action`));
+    }
+    bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+        runValidators: true,
+        new: true
+    });
     res.status(200).json({
         status: 'success',
         id: req.params.id,
@@ -87,6 +92,10 @@ exports.deleteBootcamp = async_handler(async (req, res, next) => {
     //return because you can set properties more than once even though thery are in if statements etc.
     if (!bootcamp) {
         return next(new ErrorResponse(`bootcamp not found with id: ${req.params.id}`, 404));
+    }
+    //make sure the user is bootcamp owner or an admin
+    if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`you are not authorized to do this action`));
     }
     bootcamp.remove();
     res.status(200).json({
@@ -128,10 +137,13 @@ exports.bootcampPhotoUpload = async_handler(async (req, res, next) => {
     if (!bootcamp) {
         return next(new ErrorResponse(`bootcamp not found with id: ${req.params.id}`, 404));
     }
+    //make sure the user is bootcamp owner or an admin
+    if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`you are not authorized to do this action`));
+    }
     if (!req.files) {
         return next(new ErrorResponse(`please upload a file`, 400));
     }
-    console.log(req.files);
     const file = req.files.file;
     //file validations
     //file type

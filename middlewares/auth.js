@@ -25,6 +25,9 @@ exports.protect = asynchandler(async (req, res, next) => {
         const tokencontents = jwt.verify(token, process.env.JWT_SECRET);
         //get the user from db and put it on req.user
         req.user = await User.findById(tokencontents.id);
+        if (!req.user) {
+            return next(new ErrorResponse('internal server error', 500));
+        }
         return next();
     } catch (error) {
         return next(new ErrorResponse('unauthorized access', 401));
