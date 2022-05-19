@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-
+const crypto = require('crypto');
 const UserSchema = mongoose.Schema({
     name: {
         type: String,
@@ -37,6 +37,10 @@ const UserSchema = mongoose.Schema({
 });
 //hasahing the password
 UserSchema.pre('save', async function (next) {
+    //run only if password is modified
+    if (!this.isModified('password')) {
+        next();
+    }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
@@ -53,4 +57,17 @@ UserSchema.methods.compare = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
+//method for generating password reset token
+UserSchema.methods.getResetPasswordToken = function () {
+    //generating the token
+    //1. generating random bytes
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    //2. hash token and set to resetPasswordToken in db
+    //this is just setting up on the object not the actual db
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    // set expire field in db
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+    //return unhashed version
+    return resetToken;
+};
 module.exports = mongoose.model('User', UserSchema);
