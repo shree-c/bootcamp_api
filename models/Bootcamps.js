@@ -121,6 +121,9 @@ BootcampSchema.pre('save', function (next) {
 });
 //middleware for using geocoder
 BootcampSchema.pre('save', async function (next) {
+    if (!this.isModified('address')) {
+        next();
+    }
     const loc = await geocoder.geocode(this.address);
     this.location = {
         type: 'Point',
@@ -132,8 +135,6 @@ BootcampSchema.pre('save', async function (next) {
         zipcode: loc[0].zipcode,
         country: loc[0].countryCode,
     };
-    //address is not needed because it is undefined
-    this.address = undefined;
     next();
 });
 /*

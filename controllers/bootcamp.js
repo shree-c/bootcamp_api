@@ -72,10 +72,17 @@ exports.updateBootcamp = async_handler(async (req, res, next) => {
     if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
         return next(new ErrorResponse(`you are not authorized to do this action`));
     }
-    bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-        runValidators: true,
-        new: true
+    //needs to be changed geocoder middleware doesn't run for this query
+    //changed it so that validators can run on updation
+    Object.keys(req.body).forEach((val) => {
+        bootcamp[val] = req.body[val];
     });
+    console.log(bootcamp);
+    await bootcamp.save({ validateBeforeSave: true });
+    // bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+    //     runValidators: true,
+    //     new: true
+    // });
     res.status(200).json({
         status: 'success',
         id: req.params.id,
