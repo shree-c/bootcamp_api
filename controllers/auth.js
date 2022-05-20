@@ -112,6 +112,40 @@ exports.resetPassword = async_handler(async function (req, res, next) {
     res.status(200).json({ success: true, data: `password has been reset` });
 });
 
+// @desc    update username and email
+// @route   PUT /api/v1/auth/updateDetails
+// @access  Private
+exports.updateDetails = async_handler(async function (req, res, next) {
+    const user = await Users.findByIdAndUpdate(req.user.id, {
+        name: req.body.name,
+        email: req.body.email
+    }, {
+        new: true,
+        runValidators: true,
+    });
+    res.status(200)
+        .json({
+            success: true,
+            data: user
+        });
+});
+
+// @desc    update password
+// @route   PUT /api/v1/auth/updatepassword
+// @access  Private
+exports.updatePassword = async_handler(async function (req, res, next) {
+    //1. querying to get the current password
+    const user = await Users.findById(req.user.id).select('+password');
+    //2. comparing current password with that in db
+    if (!await user.compare(req.body.currentPassword)) {
+        return next(new ErrorResponse(`enter the correct current password`, 401));
+    }
+    //3. setting the new password
+    user.password = req.body.newPassword;
+    //4. updating it in the db
+    await user.save({ validateBeforeSave: false });
+    sendTokenResponse(user, res, 200);
+});
 
 //for sending token response
 function sendTokenResponse(user, res, statusCode) {

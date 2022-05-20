@@ -35,7 +35,7 @@ const UserSchema = mongoose.Schema({
         default: Date.now
     }
 });
-//hasahing the password
+//hashing the password
 UserSchema.pre('save', async function (next) {
     //run only if password is modified
     if (!this.isModified('password')) {
