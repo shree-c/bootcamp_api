@@ -4,6 +4,7 @@ const bootcamps_router = require('./routes/bootcamps_router');
 const courses_router = require('./routes/courses_router');
 const auth_router = require('./routes/auth');
 const users_router = require('./routes/users');
+const reviews_router = require('./routes/review_router');
 //birnging in db
 const { connect_db, connection } = require('./config/db');
 //express file upload for uploading files
@@ -37,7 +38,8 @@ app.use(cookieParser());
 app.use('/api/v1/bootcamps/', bootcamps_router);
 app.use('/api/v1/courses/', courses_router);
 app.use('/api/v1/auth/', auth_router);
-app.use('/api/v1/users', users_router);
+app.use('/api/v1/users/', users_router);
+app.use('/api/v1/reviews/', reviews_router);
 //error handler middleware should be used after router
 //this is universal error handler
 app.use(errorHandler);

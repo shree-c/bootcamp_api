@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { getBootcamps, getBootcamp, createBootcamp, updateBootcamp, deleteBootcamp, getBootcampsByZipcodeAndRadius, bootcampPhotoUpload } = require('../controllers/bootcamp');
-const advancedResults = require('../middlewares/advancedResults');
+const { advancedResults } = require('../middlewares/advancedResults');
 const { protect, authorize } = require('../middlewares/auth');
 const Bootcamps = require('../models/Bootcamps');
 //rerouting /:bootcamps/courses to course router

@@ -2,38 +2,55 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const UserSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Please enter name']
+const UserSchema = mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: [true, 'Please enter name']
+        },
+        email: {
+            type: String,
+            required: [true, 'Please enter email'],
+            match: [
+                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                'Please add a valid email'
+            ],
+            unique: true,
+            index: true
+        },
+        password: {
+            type: String,
+            required: [true, 'Please enter password'],
+            minlength: 6,
+            select: false //will not return on query
+        },
+        role: {
+            type: String,
+            enum: ['user', 'publisher'],
+            default: 'user'
+        },
+        resetPasswordToken: String,
+        resetPasswordExpire: Date,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     },
-    email: {
-        type: String,
-        required: [true, 'Please enter email'],
-        match: [
-            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-            'Please add a valid email'
-        ],
-        unique: true,
-        index: true
+    {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
     },
-    password: {
-        type: String,
-        required: [true, 'Please enter password'],
-        minlength: 6,
-        select: false //will not return on query
-    },
-    role: {
-        type: String,
-        enum: ['user', 'publisher'],
-        default: 'user'
-    },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
-    createdAt: {
-        type: Date,
-        default: Date.now
+    {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
     }
+);
+
+UserSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false,
 });
 //hashing the password
 UserSchema.pre('save', async function (next) {

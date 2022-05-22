@@ -63,6 +63,7 @@ exports.addCourse = async_handler(async (req, res, next) => {
             new ErrorResponse(`no bootcamp exists with ${req.params.bootcampId}`, 404)
         );
     }
+    //has to be the owner of the bootcamp
     if (req.user.id !== bootcamp.user.toString() && req.user.role !== 'admin') {
         return next(new ErrorResponse(`${req.user.id} is not the owner of this course`, 401));
     }
@@ -84,7 +85,6 @@ exports.updateCourse = async_handler(async (req, res, next) => {
             new ErrorResponse(`no course exists with ${req.params.id}`, 404)
         );
     }
-    console.log(course);
     if (req.user.id !== course.user.toString() && req.user.role !== 'admin') {
         return next(new ErrorResponse(`${req.user.id} is not the owner of this course`, 401));
     }

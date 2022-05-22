@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Bootcamp = require('./models/Bootcamps');
 const Course = require('./models/Courses');
 const Users = require('./models/Users');
+const Reviews = require('./models/Reviews');
 require('colors');
 require('dotenv').config({
     path: './config/config.env'
@@ -81,6 +82,27 @@ const delete_courses = async () => {
     }
 };
 
+const add_reviews = async () => {
+    try {
+        await Reviews.create(JSON.parse(fs.readFileSync(`${__dirname}/_data/reviews.json`)));
+        console.log(`added all reviews`.green.inverse);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
+
+const delete_reviews = async () => {
+    try {
+        await Reviews.deleteMany();
+        console.log(`deleted all reviews`.red);
+        process.exit(0);
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
+};
 const arg_str = process.argv.slice(2);
 if (!arg_str.length) {
     console.log('no options provided');
@@ -119,6 +141,17 @@ arg_str.forEach(async (val, ind) => {
                 delete_users();
             });
             break;
+        case '-cr':
+            await connectDB().then(() => {
+                add_reviews();
+            });
+            break;
+        case '-dr':
+            await connectDB().then(() => {
+                delete_reviews();
+            });
+            break;
+
         default:
             console.log('unknown operation'.red.underline);
             break;

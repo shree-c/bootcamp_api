@@ -152,6 +152,13 @@ BootcampSchema.virtual('courses', {
     justOne: false,
 });
 
+BootcampSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false,
+});
+
 /*
 !!!
 * if a bootcamp is deleted, all of the courses it offers has to be deleted
