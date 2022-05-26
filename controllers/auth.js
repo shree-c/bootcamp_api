@@ -51,6 +51,23 @@ exports.getMe = async_handler(async function (req, res, next) {
         });
 });
 
+// @desc    user log out
+// @route   GET /api/v1/auth/logout
+// @access  Private
+exports.logOut = async_handler(async function (req, res, next) {
+    //in the tutorial brad has again queried the db with the id from req.user.id set by the protect function
+    //I thought it was unncessary since all the info is available req.user
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() * 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200)
+        .json({
+            success: true,
+            data: {}
+        });
+});
+
 // @desc    forgot password
 // @route   GET /api/v1/auth/forgotpassword
 // @access  Public

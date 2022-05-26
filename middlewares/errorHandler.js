@@ -2,7 +2,7 @@ const errorHandler = (err, req, res, next) => {
     console.log(err);
     if (err.name === 'CastError') {
         //incorrect format
-        err.message = `data not found with id: ${err.value}`;
+        err.message = `resource not found`;
         err.statusCode = 404;
     }
     //duplicate field

@@ -5,6 +5,12 @@ const courses_router = require('./routes/courses_router');
 const auth_router = require('./routes/auth');
 const users_router = require('./routes/users');
 const reviews_router = require('./routes/review_router');
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const xssclean = require('xss-clean');
+const ratelimit = require('express-rate-limit');
+const hpp = require('hpp');
+const cors = require('cors');
 //birnging in db
 const { connect_db, connection } = require('./config/db');
 //express file upload for uploading files
@@ -14,6 +20,8 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 //for coloring text
 require('colors');
+//helmet
+app.use(helmet());
 //json middleware
 app.use(express.json());
 //logger middleware
@@ -34,6 +42,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressfileupload());
 //cookie parser
 app.use(cookieParser());
+//mogno sanitize
+app.use(mongoSanitize());
+//xssclean
+app.use(xssclean());
+//rate limiting
+const limiter = ratelimit({
+    windowMs: 10 * 60 * 1000,
+    max: 100
+});
+app.use(limiter);
+//http params pollution
+app.use(hpp);
+//enable cors
+app.use(cors());
 //mounting router to app
 app.use('/api/v1/bootcamps/', bootcamps_router);
 app.use('/api/v1/courses/', courses_router);
