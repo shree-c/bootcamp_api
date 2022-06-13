@@ -57,7 +57,7 @@ exports.addCourse = async_handler(async (req, res, next) => {
     req.body.bootcamp = req.params.bootcampId;
     //adding user id from protect function
     req.body.user = req.user.id;
-    const bootcamp = await Bootcamps.find({ _id: req.params.bootcampId });
+    const bootcamp = await Bootcamps.findById(req.params.bootcampId);
     if (!bootcamp) {
         return next(
             new ErrorResponse(`no bootcamp exists with ${req.params.bootcampId}`, 404)

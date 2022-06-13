@@ -1,11 +1,11 @@
 //schema for courses
 const mongoose = require('mongoose');
-const { average } = require('../utils/misc');
 
 const CourseSchema = new mongoose.Schema({
     title: {
         type: String,
         trim: true,
+        unique: true,
         required: [true, 'Please add a course title']
     },
     description: {
