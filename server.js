@@ -53,7 +53,7 @@ const limiter = ratelimit({
 });
 app.use(limiter);
 //http params pollution
-app.use(hpp);
+app.use(hpp());
 //enable cors
 app.use(cors());
 //mounting router to app
