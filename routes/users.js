@@ -6,7 +6,7 @@ const Users = require("../models/Users");
 const router = express.Router();
 
 router.use(protect);
-// router.use(authorize('admin'));
+router.use(authorize('admin'));
 
 router.route('/')
     .get(advancedResults(Users), getAllUsers)

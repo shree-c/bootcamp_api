@@ -1,5 +1,5 @@
 const { protect, authorize } = require("../middlewares/auth");
-const { advancedResults, advancedReviewResults } = require("../middlewares/advancedResults");
+const { advancedReviewResults } = require("../middlewares/advancedResults");
 const { getAllReviews, getAllUserReviews, addReview, updateReview, deleteReview } = require('../controllers/reviews');
 const express = require("express");
 const router = express.Router();
