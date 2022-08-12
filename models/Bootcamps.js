@@ -164,7 +164,6 @@ BootcampSchema.virtual('reviews', {
 * if a bootcamp is deleted, all of the courses it offers has to be deleted
 */
 BootcampSchema.pre('remove', async function (next) {
-    console.log(`courses removed : ${this._id}`);
     await this.model('Course').deleteMany({
         bootcamp: this._id
     });

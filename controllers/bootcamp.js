@@ -26,8 +26,11 @@ exports.createBootcamp = async_handler(async (req, res, next) => {
     req.body.user = req.user;
     //making sure a publisher can publish only a single bootcamp
     const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
-    if (publishedBootcamp && req.user.role === 'publisher') {
+    if (publishedBootcamp) {
         return next(new ErrorResponse('a publisher can publish only one bootcamp', 403));
+    }
+    if (req.user.role !== 'publisher' && req.user.role !== 'admin') {
+    	return next(new ErrorResponse('you should be a publisher to create bootcmaps', 400));
     }
     //the data is added according to model and validation checks are done
     const bootcamp = await Bootcamp.create(req.body);
@@ -77,7 +80,6 @@ exports.updateBootcamp = async_handler(async (req, res, next) => {
     Object.keys(req.body).forEach((val) => {
         bootcamp[val] = req.body[val];
     });
-    console.log(bootcamp);
     await bootcamp.save({ validateBeforeSave: true });
     // bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
     //     runValidators: true,
